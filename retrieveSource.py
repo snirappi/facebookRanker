@@ -1,5 +1,6 @@
 from selenium.webdriver import Chrome
 from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
@@ -7,9 +8,20 @@ from getpass import getpass
 import json
 import re
 
+def wait_for_page(driver, ids):
+	#Wait for Homepage to load, try different elements
+	try:
+		WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, ids[0])))
+		getSource(driver)
+	except TimeoutException: 	
+		if len(ids) > 0:
+			ids.pop(0)
+			wait_for_page(driver, ids)
+		else:
+			print("Can\'t retrieve page!")
+			driver.quit()
+
 def getSource(driver):
-	#Wait for Homepage to load
-	WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "pagelet_megaphone")))
 	page_source = driver.execute_script("return document.documentElement.innerHTML;").encode('ascii', 'ignore').decode('ascii')
 	#Format Ids
 	ids = re.search(",list:\[(.*?)\]", page_source).groups()[0]
@@ -33,7 +45,8 @@ def rank(ids, users):
 			print(str(count) + ' ' + users.get(id)['name'])
 		count = count + 1
 
-email = raw_input('email: ')
+element_ids = ["BuddylistPagelet", "pagelet_megaphone"]
+email = raw_input("email: ")
 password = getpass()
 
 driver = Chrome()
@@ -50,9 +63,9 @@ password_input.send_keys(password)
 try:
 	submit = driver.find_element_by_id("loginbutton")
 	submit.click()
-	getSource(driver)
+	wait_for_page(driver, element_ids)
 except NoSuchElementException:
 	submit = driver.find_element_by_id("u_0_b")
 	submit.click()
-	getSource(driver)
+	wait_for_page(driver, element_ids)
 		
