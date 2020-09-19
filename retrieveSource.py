@@ -6,10 +6,20 @@ from selenium.webdriver.support import expected_conditions as EC
 from getpass import getpass
 import json
 import re
+import argparse
+
+global args
+
+parser = argparse.ArgumentParser(description='Rank your Facebook Friends.')
+parser.add_argument('--lookup', action="store_true", default=False, dest="lookup",
+                   help='Lookup any users that are not available in shortProfiles. ' +  
+                   'Facebook knows when you try to lookup profiles without being logged in so don\'t run this frequently.')
+
+args = parser.parse_args()
 
 def getSource(driver):
 	#Wait for Homepage to load
-	WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "pagelet_megaphone")))
+	WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "BuddylistPagelet")))
 	page_source = driver.execute_script("return document.documentElement.innerHTML;").encode('ascii', 'ignore').decode('ascii')
 	#Format Ids
 	ids = re.search(",list:\[(.*?)\]", page_source).groups()[0]
@@ -24,6 +34,18 @@ def getSource(driver):
 	rank(ids, users)
 	driver.quit()
 
+def findUser(id, count):
+	driver = Chrome()
+	driver.get("https://facebook.com/" + id)
+	try:
+		name = driver.find_element_by_id('pageTitle').text.split('|')[0]
+		print(str(count) + ' ' + name)
+		driver.quit()
+	except NoSuchElementException:
+		driver.quit()
+
+	
+
 def rank(ids, users):
 	count = 1
 	ids = ids.split(",")
@@ -31,6 +53,10 @@ def rank(ids, users):
 	for id in ids:
 		if users.get(id) is not None:
 			print(str(count) + ' ' + users.get(id)['name'])
+		elif args.lookup: 
+			findUser(id, count)
+		else:
+			print(str(count) + ' ...')
 		count = count + 1
 
 email = raw_input('email: ')
@@ -46,6 +72,7 @@ username_input.send_keys(email)
 password_input = driver.find_element_by_id("pass")
 password_input.clear()
 password_input.send_keys(password)
+
 
 try:
 	submit = driver.find_element_by_id("loginbutton")
