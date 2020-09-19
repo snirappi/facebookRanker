@@ -5,8 +5,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from getpass import getpass
-import json
-import re
+from datetime import date
+import json, re, os
 
 def wait_for_page(driver, ids):
 	#Wait for Homepage to load, try different elements
@@ -37,14 +37,22 @@ def getSource(driver):
 	driver.quit()
 
 def rank(ids, users):
+	file_name = date.today().strftime("%m-%d-%y") + '.csv'
+	file = open('./logs/' + file_name, "w");
+	file.write('Name,' + date.today().strftime("%m-%d-%y") + '\n')
 	count = 1
 	ids = ids.split(",")
 	users = json.loads(users)
 	for id in ids:
 		if users.get(id) is not None:
 			print(str(count) + ' ' + users.get(id)['name'])
+			file.write(users.get(id)['name'] + ',' + str(count) + '\n')
 		count = count + 1
 
+try:
+	os.mkdir("./logs")
+except OSError:
+	pass
 element_ids = ["BuddylistPagelet", "pagelet_megaphone"]
 email = raw_input("email: ")
 password = getpass()
