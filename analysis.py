@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-from scipy.stats import linregress
 import glob
 
 all_files = glob.glob("./logs/*.csv")
@@ -9,7 +7,7 @@ li = []
 
 for filename in all_files:
 
-    df = pd.read_csv(filename, index_col="Name")
+    df = pd.read_csv(filename, index_col=0, header=0)
 
     li.append(df)
 
