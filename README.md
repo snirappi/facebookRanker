@@ -22,8 +22,14 @@ For educational purposes only :)<br/>
 Many years of discussion have been had about the nature of <a href="https://lmgtfy.app/?q=InitialChatFriendsList">"InitialChatFriendsList"</a>. Facebook's algorithm for it is under lock and key so the public will never know. What it is speculated to be based on is all kinds of interactions - Chat, Group Chat, Wall Posts, Comments, Likes, and most importantly <b>Profile Visits</b> (This list is non-exhaustive!)<br/>
 Everything in the ranking is bi-directional so if you happen to visit someone's profile alot, they will shoot up the ranks. This isn't just who stalks you :)
 
+## Who's Stalking me?
+My guess is that anyone who is showing up higher in the ranking that you rarely interact with, there is a good chance they are viewing your profile.
+
 ## How it works
-Selenium is used to open the second Facebook account first. This account is used to lookup users not available in the shortProfiles attribute. Your main account is then loaded and the InitialFriendsChatList is retrieved along with the shortProfiles. Ranks are written to a CSV file with today's date in the ./logs/ folder by matching, in order, InitialFriendsChatList ids to the shortProfiles or looking up the user using the second account.
+* New Layout
+Selenium is used to lookup Chat Sidebar List Rankings. Ranks are written to a CSV file with today's date in the `./logs/` folder
+* Old Layout
+Selenium is used to open the second Facebook account first. This account is used to lookup users not available in the shortProfiles attribute. Your main account is then loaded and the InitialFriendsChatList is retrieved along with the shortProfiles. Ranks are written to a CSV file with today's date in the `./logs/` folder by matching, in order, InitialFriendsChatList ids to the shortProfiles or looking up the user using the second account.
 
 ## Future features
 * read account(s) from JSON file
