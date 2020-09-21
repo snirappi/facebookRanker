@@ -7,9 +7,9 @@ For educational purposes only :)<br/>
 <sub>please don't sue me</sub>
 
 ## How to use
-1. run `python retrieveSource.py` for partial list or `python retrieveSource.py --lookup` (Must have 2 Facebook accounts!)
+1. run `python retrieveSource.py` for or `python retrieveSource.py --lookup` if you are using the old Facebook layout (Must have 2 Facebook accounts!)
 2. Enter accounts as prompted
-3. run `python analysis.py` to see aggregate rank data
+3. run `python analysis.py` to see aggregate rank data. Run the script over multiple days to get a clearer picture of rank.
 
 ## Dependencies
 * Python
