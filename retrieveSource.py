@@ -14,12 +14,13 @@ global file_name
 global fake_driver
 global element_ids
 		
+#Wait for Homepage to load, tries different elements
 def wait_for_page(driver, fake):
-	#Wait for Homepage to load, try different elements
 	global element_ids
 	try:
 		if not fake:
-			WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, element_ids[0])))
+			driver.implicitly_wait(10)
+			driver.find_element_by_id(element_ids[0]) 
 			getSource(driver)
 	except TimeoutException: 	
 		if len(element_ids) > 0:
@@ -28,24 +29,48 @@ def wait_for_page(driver, fake):
 		else:
 			print("Can\'t retrieve page!")
 			driver.quit()
+	except NoSuchElementException:
+		if len(element_ids) > 0:
+			element_ids.pop(0)
+			wait_for_page(driver, fake)
+		else:
+			print("Can\'t retrieve page!")
+			driver.quit()
 
+#Retrieves page source HTML and parses for users
 def getSource(driver):
 	page_source = driver.execute_script("return document.documentElement.innerHTML;").encode('ascii', 'ignore').decode('ascii')
-	#Format Ids
-	ids = re.search(",list:\[(.*?)\]", page_source).groups()[0]
-	ids = ids.replace("\"", "")
-	ids = ids.replace("-2", "")
-	ids = re.sub(r'([0-9]*)-0,', r'', ids)
-	#Format profiles to JSON
-	users = re.search("shortProfiles:\{(.*?)\}\}", page_source).groups()[0]
-	users = "{" + users + "}}"
-	users = re.sub(r'(?!https\b)\b(\w+):', r'"\1":', users)
+	
+	#Old Layout
+	try:
+		#Format Ids
+		ids = re.search(",list:\[(.*?)\]", page_source).groups()[0]
+		ids = ids.replace("\"", "")
+		ids = ids.replace("-2", "")
+		ids = re.sub(r'([0-9]*)-0,', r'', ids)
+		#Format profiles to JSON
+		users = re.search("shortProfiles:\{(.*?)\}\}", page_source).groups()[0]
+		users = "{" + users + "}}"
+		users = re.sub(r'(?!https\b)\b(\w+):', r'"\1":', users)
+		new_layout = False;
+	except AttributeError:
+		#New Layout
+		users = re.search("rankings\":\[\{(.*?)\]\}", page_source).groups()[0]
+		users = "{\"rankings\":[{" + users + "]}"
+		users = re.sub(r'(?!https\b)\b(\w+):', r'"\1":', users)
+		users = re.sub(r'"status":[0-9],', r'', users)
+		file = open("json check.txt", "w")
+		file.write(users)
+		file.close()
+		ids = re.search("id\":\"(.*?)", users).groups()
+		new_layout = True
 
-	rank(ids, users)
+	rank(ids, users, new_layout)
 	driver.quit()
-	fake_driver.quit()
+	if not new_layout:
+		fake_driver.quit()
 
-
+#Finds users not in shortProfiles with second account (Old Layout)
 def findUser(id, count, file):	
 	fake_driver.get("https://facebook.com/" + id)
 	try:
@@ -59,24 +84,36 @@ def findUser(id, count, file):
 	except TimeoutException:
 		print("Timeout on Lookup " + str(id))
 
-def rank(ids, users):
+#Creates Rank of Users based on Chat Loading List
+def rank(ids, users, new_layout):
 	file = open('./logs/' + file_name, "w");
 	file.write('Name,' + date.today().strftime("%m-%d-%y") + '\n')
 	count = 1
-	ids = ids.split(",")
 	users = json.loads(users)
-	for id in ids:
-		if users.get(id) is not None:
-			if "Facebook User" in users.get(id)['name']:
-				continue 
-			print(str(count) + ' ' + users.get(id)['name'])
-			file.write(users.get(id)['name'] + ',' + str(count) + '\n')
-		elif args.lookup: 
-			findUser(id, count, file)
-		count = count + 1
-		if count > args.max:
-			return
-
+	if not new_layout:
+		ids = ids.split(",")
+		for id in ids:
+			if users.get(id) is not None:
+				if "Facebook User" in users.get(id)['name']:
+					continue 
+				print(str(count) + ' ' + users.get(id)['name'])
+				file.write(users.get(id)['name'] + ',' + str(count) + '\n')
+			elif args.lookup: 
+				findUser(id, count, file)
+			count = count + 1
+			if count > args.max:
+				return
+	else: 
+		for user in users['rankings']:
+			if user.get('user') is None:
+				continue
+			print(str(count) + ' ' + user.get('user').get('name'))
+			file.write(user.get('user').get('name') + ',' + str(count) + '\n')
+			count = count + 1
+			if count > args.max:
+				return
+	
+#ChromeDriver login
 def login(fake):
 	global fake_driver
 	if not fake:
@@ -124,13 +161,14 @@ def init():
 parser = argparse.ArgumentParser(description='Rank your Facebook Friends.')
 parser.add_argument('--lookup', action="store_true", default=False, dest="lookup",
                    help='Lookup any users that are not available in shortProfiles. ' +  
-                   'Requires a 2nd account to avoid looking up users on main account.')
+                   'Requires a 2nd account to avoid looking up users on main account.' +
+                   'Only necessary if you are using the old layout.')
 parser.add_argument('-max', nargs='?', const=50, default=50, type=int,
 					help="Maximum number of friends to rank. Defaults to 50.")
 
 args = parser.parse_args()
 file_name = date.today().strftime("%m-%d-%y") + '.csv'
-element_ids = ["BuddylistPagelet", "pagelet_megaphone"]
+element_ids = ["ssrb_root_content", "ssrb_stories_content", "u_0_b", "BuddylistPagelet", "pagelet_megaphone"]
 
 
 init()	
