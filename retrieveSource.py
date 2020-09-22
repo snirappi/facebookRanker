@@ -75,7 +75,7 @@ def findUser(id, count, file):
 	fake_driver.get("https://facebook.com/" + id)
 	try:
 		WebDriverWait(fake_driver, 10).until(EC.element_to_be_clickable((By.TAG_NAME, "h1")))
-		name = fake_driver.find_element_by_tag_name("h1").text
+		name = fake_driver.find_element_by_tag_name("h1").text.split('\n')[0]
 		if len(name) > 0:
 			print(str(count) + ' ' + name)
 			file.write(name + ',' + str(count) + '\n')
