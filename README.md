@@ -9,7 +9,7 @@ For educational purposes only :)<br/>
 ## How to use
 1. run `python retrieveSource.py` for or `python retrieveSource.py --lookup` if you are using the old Facebook layout (Must have 2 Facebook accounts!)
 2. Enter accounts as prompted
-3. run `python analysis.py` to see aggregate rank data. Run the script over multiple days to get a clearer picture of rank.
+3. run `python analysis.py` to see aggregate rank data and rank changes between days. Run the script over multiple days to get a clearer picture of rank.
 
 ## Dependencies
 * Python
@@ -23,12 +23,12 @@ Many years of discussion have been had about the nature of <a href="https://lmgt
 Everything in the ranking is bi-directional so if you happen to visit someone's profile alot, they will shoot up the ranks. This isn't just who stalks you :)
 
 ## Who's Stalking me?
-My guess is that anyone who is showing up higher in the ranking that you rarely interact with, there is a good chance they are viewing your profile.
+Using `analysis.py` you'll see on a day-by-day basis how ranks change. Positive increases imply activity - if you haven't done any interaction with the person, it is possible they have viewed your profile. 
 
 ## How it works
-* New Layout
+* New Layout<br/>
 Selenium is used to lookup Chat Sidebar List Rankings. Ranks are written to a CSV file with today's date in the `./logs/` folder
-* Old Layout
+* Old Layout<br/>
 Selenium is used to open the second Facebook account first. This account is used to lookup users not available in the shortProfiles attribute. Your main account is then loaded and the InitialFriendsChatList is retrieved along with the shortProfiles. Ranks are written to a CSV file with today's date in the `./logs/` folder by matching, in order, InitialFriendsChatList ids to the shortProfiles or looking up the user using the second account.
 
 ## Future features
